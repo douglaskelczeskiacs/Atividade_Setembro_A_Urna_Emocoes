@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urna Eletrônica - Justiça Emocional</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .urna-wrapper {
+            background: #d1d5db;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            display: flex;
+            gap: 20px;
+            max-width: 950px;
+            width: 100%;
+            border: 4px solid #eab308;
+        }
+        @media (max-width: 850px) {
+            .urna-wrapper {
+                flex-direction: column;
+            }
+        }
+        /* TELA DA URNA */
+        .tela-container {
+            flex: 1;
+            background: #e2e8f0;
+            border: 4px solid #4b5563;
+            border-radius: 10px;
+            padding: 20px;
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 420px;
+            position: relative;
+        }
+        .header-urna {
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+            color: #1e293b;
+        }
+        .cargo-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .numero-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .num-box {
+            border: 2px solid #000;
+            width: 40px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            background: #fff;
+        }
+        .num-box.pisca {
+            animation: piscar 0.8s infinite;
+        }
+        @keyframes piscar {
+            0%, 100% { border-color: #000; }
+            50% { border-color: transparent; }
+        }
+        .info-candidato {
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+        .foto-candidato {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 110px;
+            height: 130px;
+            border: 2px solid #000;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .foto-candidato img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .instrucoes {
+            border-top: 2px solid #000;
+            padding-top: 8px;
+            font-size: 0.8rem;
+            color: #334155;
+        }
+
+        /* TECLADO DA URNA */
+        .teclado {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 auto;
+        }
+        .justica-eleitoral-logo {
+            color: #eab308;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .teclado-numerico {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .btn-num {
+            background: #0f172a;
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px #000;
+        }
+        .btn-num:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #000;
+        }
+        .teclado-acoes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+        .btn-acao {
+            border: none;
+            padding: 12px 5px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 3px #000;
+        }
+        .btn-acao:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px #000;
+        }
+        .btn-branco { background-color: #ffffff; color: #000; }
+        .btn-correio { background-color: #dc2626; color: #fff; }
+        .btn-confirma { background-color: #16a34a; color: #fff; }
+
+        /* MENSAGEM FINAL DE FIM / ESTATÍSTICAS */
+        .fim-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+        .fim-title {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #1e293b;
+            letter-spacing: 5px;
+        }
+        .relatorio-container {
+            width: 100%;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        .relatorio-bar {
+            background: #cbd5e1;
+            border-radius: 5px;
+            height: 18px;
+            overflow: hidden;
+            margin-top: 3px;
+            margin-bottom: 8px;
+        }
+        .relatorio-fill {
+            height: 100%;
+            background: #eab308;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div class="urna-wrapper">
+    <!-- TELA ELETRÔNICA -->
+    <div class="tela-container" id="tela">
+        <div class="header-urna">🎗️ Justiça Emocional • Setembro Amarelo</div>
+        
+        <div id="conteudo-voto">
+            <div class="cargo-title">SEU VOTO VAI PARA:</div>
+            <div class="numero-container">
+                Número:
+                <div class="num-box pisca" id="d1"></div>
+                <div class="num-box" id="d2"></div>
+            </div>
+            <div class="info-candidato" id="info">
+                <!-- Informações dinâmicas do candidato -->
+            </div>
+            <div class="foto-candidato" id="foto-box" style="display: none;">
+                <img id="foto-img" src="" alt="Sentimento">
+            </div>
+        </div>
+
+        <div class="instrucoes" id="instrucoes">
+            Aperte a tecla:<br>
+            <strong>CONFIRMA</strong> para CONFIRMAR este voto<br>
+            <strong>CORRIGE</strong> para REINICIAR este voto
+        </div>
+    </div>
+
+    <!-- TECLADO FÍSICO -->
+    <div class="teclado">
+        <div class="justica-eleitoral-logo">JUSTIÇA EMOCIONAL</div>
+        <div class="teclado-numerico">
+            <button class="btn-num" onclick="digita('1')">1</button>
+            <button class="btn-num" onclick="digita('2')">2</button>
+            <button class="btn-num" onclick="digita('3')">3</button>
+            <button class="btn-num" onclick="digita('4')">4</button>
+            <button class="btn-num" onclick="digita('5')">5</button>
+            <button class="btn-num" onclick="digita('6')">6</button>
+            <button class="btn-num" onclick="digita('7')">7</button>
+            <button class="btn-num" onclick="digita('8')">8</button>
+            <button class="btn-num" onclick="digita('9')">9</button>
+            <button class="btn-num" style="grid-column: 2;" onclick="digita('0')">0</button>
+        </div>
+        <div class="teclado-acoes">
+            <button class="btn-acao btn-branco" onclick="votarBranco()">BRANCO</button>
+            <button class="btn-acao btn-correio" onclick="corrige()">CORRIGE</button>
+            <button class="btn-acao btn-confirma" onclick="confirma()">CONFIRMA</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // CARREGAMENTO DO ÁUDIO
+    const audioConfirma = new Audio('confirma_voto.mp3');
+    let audioLiberado = false;
+
+    function liberarAudio() {
+        if (!audioLiberado) {
+            audioConfirma.play().then(() => {
+                audioConfirma.pause();
+                audioConfirma.currentTime = 0;
+                audioLiberado = true;
+            }).catch(() => {});
+        }
+    }
+    document.addEventListener('touchstart', liberarAudio, { once: true });
+    document.addEventListener('click', liberarAudio, { once: true });
+
+    // CANDIDATOS
+    const candidatos = {
+        "10": { nome: "ALEGRIA", papel: "Traz energia e otimismo, mas precisa respeitar o tempo da dor.", foto: "alegria.png" },
+        "20": { nome: "TRISTEZA", papel: "Essencial para processar perdas, gerar empatia e pedir acolhimento.", foto: "tristeza.png" },
+        "30": { nome: "MEDO", papel: "Alerta de prudência que nos protege e impulsiona a buscar ajuda.", foto: "medo.png" },
+        "40": { nome: "RAIVA", papel: "Canalizada com sabedoria, serve para impor limites e defender nossa mente.", foto: "raiva.png" },
+        "50": { nome: "ANSIEDADE", papel: "Em doses certas, movimenta o planejamento e a preparação do futuro.", foto: "ansiedade.png" },
+        "60": { nome: "VERGONHA", papel: "Nos traz humildade para reconhecer erros, pedir desculpas e se reconectar.", foto: "vergonha.png" }
+    };
+
+    // CONTADOR GLOBAL DE VOTOS
+    const votos = {
+        "10": 0, "20": 0, "30": 0, "40": 0, "50": 0, "60": 0, "BRANCO": 0, "NULO": 0
+    };
+
+    let numeroDigitado = "";
+    let eBranco = false;
+    let votacaoBloqueada = false;
+
+    // BEEP DE DIGITAÇÃO DE TECLA
+    function tocarSomTeclado() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(1000, ctx.currentTime);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.05);
+        } catch(e) {}
+    }
+
+    function atualizaTela() {
+        const d1 = document.getElementById('d1');
+        const d2 = document.getElementById('d2');
+        const info = document.getElementById('info');
+        const fotoBox = document.getElementById('foto-box');
+        const fotoImg = document.getElementById('foto-img');
+
+        if (!d1 || !d2) return;
+
+        d1.innerText = numeroDigitado[0] || "";
+        d2.innerText = numeroDigitado[1] || "";
+
+        if (numeroDigitado.length === 1) {
+            d1.classList.remove('pisca');
+            d2.classList.add('pisca');
+        } else if (numeroDigitado.length === 0) {
+            d1.classList.add('pisca');
+            d2.classList.remove('pisca');
+        } else {
+            d2.classList.remove('pisca');
+        }
+
+        if (eBranco) {
+            info.innerHTML = "<br><br><strong>VOTO EM BRANCO</strong>";
+            fotoBox.style.display = "none";
+            return;
+        }
+
+        if (numeroDigitado.length === 2) {
+            if (candidatos[numeroDigitado]) {
+                const c = candidatos[numeroDigitado];
+                info.innerHTML = `<strong>Nome:</strong> ${c.nome}<br><strong>Função Emocional:</strong> ${c.papel}`;
+                fotoImg.src = c.foto;
+                fotoBox.style.display = "flex";
+            } else {
+                info.innerHTML = "<br><br><strong>VOTO NULO</strong><br><small>Candidato não encontrado</small>";
+                fotoBox.style.display = "none";
+            }
+        } else {
+            info.innerHTML = "<br><small>Digite o número do sentimento candidato (10, 20, 30, 40, 50 ou 60)</small>";
+            fotoBox.style.display = "none";
+        }
+    }
+
+    function digita(n) {
+        if (votacaoBloqueada) return;
+        tocarSomTeclado();
+        if (eBranco) return;
+        if (numeroDigitado.length < 2) {
+            numeroDigitado += n;
+            atualizaTela();
+        }
+    }
+
+    function corrige() {
+        if (votacaoBloqueada) return;
+        tocarSomTeclado();
+        numeroDigitado = "";
+        eBranco = false;
+        atualizaTela();
+    }
+
+    function votarBranco() {
+        if (votacaoBloqueada) return;
+        tocarSomTeclado();
+
+        // COMANDO SECRETO PARA EXIBIR RELATÓRIO
+        if (numeroDigitado === "89") {
+            exibirRelatorio();
+            return;
+        }
+
+        if (numeroDigitado === "") {
+            eBranco = true;
+            atualizaTela();
+        }
+    }
+
+    function confirma() {
+        if (votacaoBloqueada) return;
+
+        let votoComputado = false;
+
+        if (eBranco) {
+            votos["BRANCO"]++;
+            votoComputado = true;
+        } else if (numeroDigitado.length === 2) {
+            if (candidatos[numeroDigitado]) {
+                votos[numeroDigitado]++;
+            } else {
+                votos["NULO"]++;
+            }
+            votoComputado = true;
+        }
+
+        if (votoComputado) {
+            votacaoBloqueada = true;
+            tocarSomFim();
+            exibirFimEAvancar();
+        } else {
+            tocarSomTeclado();
+        }
+    }
+
+    function tocarSomFim() {
+        audioConfirma.currentTime = 0;
+        audioConfirma.play().catch(e => {
+            tocarSomFimReserva();
+        });
+    }
+
+    function tocarSomFimReserva() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(440, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+        } catch(e) {}
+    }
+
+    function exibirFimEAvancar() {
+        const tela = document.getElementById('tela');
+        tela.innerHTML = `
+            <div class="fim-screen">
+                <div class="fim-title">F I M</div>
+                <p style="color: #475569; font-weight: bold;">VOTO COMPUTADO</p>
+                <small style="margin-top: 15px; color: #64748b;">Aguarde o próximo eleitor...</small>
+            </div>
+        `;
+
+        setTimeout(() => {
+            resetarParaProximoEleitor();
+        }, 3000);
+    }
+
+    function resetarParaProximoEleitor() {
+        numeroDigitado = "";
+        eBranco = false;
+        votacaoBloqueada = false;
+
+        const tela = document.getElementById('tela');
+        tela.innerHTML = `
+            <div class="header-urna">🎗️ Justiça Emocional • Setembro Amarelo</div>
+            <div id="conteudo-voto">
+                <div class="cargo-title">SEU VOTO VAI PARA:</div>
+                <div class="numero-container">
+                    Número:
+                    <div class="num-box pisca" id="d1"></div>
+                    <div class="num-box" id="d2"></div>
+                </div>
+                <div class="info-candidato" id="info"></div>
+                <div class="foto-candidato" id="foto-box" style="display: none;">
+                    <img id="foto-img" src="" alt="Sentimento">
+                </div>
+            </div>
+            <div class="instrucoes" id="instrucoes">
+                Aperte a tecla:<br>
+                <strong>CONFIRMA</strong> para CONFIRMAR este voto<br>
+                <strong>CORRIGE</strong> para REINICIAR este voto
+            </div>
+        `;
+        atualizaTela();
+    }
+
+    function exibirRelatorio() {
+        votacaoBloqueada = true;
+        const totalVotos = Object.values(votos).reduce((a, b) => a + b, 0);
+        let relatorioHTML = `<div class="relatorio-container">
+            <h3 style="text-align:center; margin-top:0; color:#1e293b;">📊 Resultado Final da Votação</h3>`;
+
+        for (const [key, val] of Object.entries(votos)) {
+            let nome = key;
+            if (candidatos[key]) nome = candidatos[key].nome;
+            const pct = totalVotos > 0 ? ((val / totalVotos) * 100).toFixed(0) : 0;
+
+            relatorioHTML += `
+                <div><strong>${nome}:</strong> ${pct}% (${val} voto${val !== 1 ? 's' : ''})</div>
+                <div class="relatorio-bar">
+                    <div class="relatorio-fill" style="width: ${pct}%"></div>
+                </div>
+            `;
+        }
+
+        relatorioHTML += `<br><small><strong>Setembro Amarelo:</strong> Todas as emoções têm um papel no nosso equilíbrio mental.</small>
+        <br><br><button onclick="resetarParaProximoEleitor()" style="width:100%; padding:10px; background:#1e293b; color:#fff; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">Voltar para Votação</button>
+        </div>`;
+
+        document.getElementById('tela').innerHTML = relatorioHTML;
+    }
+
+    atualizaTela();
+</script>
+
+</body>
+</html>
