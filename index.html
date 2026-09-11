@@ -286,19 +286,19 @@
     document.addEventListener('touchstart', liberarAudio, { once: true });
     document.addEventListener('click', liberarAudio, { once: true });
 
-    // CANDIDATOS
+    // CANDIDATOS ATUALIZADOS PARA O SANTINHO (90 - 95)
     const candidatos = {
-        "10": { nome: "ALEGRIA", papel: "Traz energia e otimismo, mas precisa respeitar o tempo da dor.", foto: "alegria.png" },
-        "20": { nome: "TRISTEZA", papel: "Essencial para processar perdas, gerar empatia e pedir acolhimento.", foto: "tristeza.png" },
-        "30": { nome: "MEDO", papel: "Alerta de prudência que nos protege e impulsiona a buscar ajuda.", foto: "medo.png" },
-        "40": { nome: "RAIVA", papel: "Canalizada com sabedoria, serve para impor limites e defender nossa mente.", foto: "raiva.png" },
-        "50": { nome: "ANSIEDADE", papel: "Em doses certas, movimenta o planejamento e a preparação do futuro.", foto: "ansiedade.png" },
-        "60": { nome: "VERGONHA", papel: "Nos traz humildade para reconhecer erros, pedir desculpas e se reconectar.", foto: "vergonha.png" }
+        "90": { nome: "ALEGRIA (AÇÃO)", papel: "Ação da Alegria: Traz energia e otimismo, mas precisa respeitar o tempo da dor.", foto: "alegria.png" },
+        "91": { nome: "TRISTEZA (EMPATIA)", papel: "EXCELENTE! Tristeza traz empatia. Sente ao lado e valide o choro.", foto: "tristeza.png" },
+        "92": { nome: "MEDO (PRUDÊNCIA)", papel: "IMPORTANTE! Ajuda a ligar o alerta. Impulsiona a buscar ajuda rápido (ex: CVV 188).", foto: "medo.png" },
+        "93": { nome: "RAIVA (LIMITES)", papel: "RESPOSTA SURPREENDENTE! Serve para estabelecer LIMITES e dizer 'Não' à sobrecarga.", foto: "raiva.png" },
+        "94": { nome: "ANSIEDADE (MOVIMENTO)", papel: "A FORÇA DA ANSIEDADE! Em pequenas doses, serve para MOVIMENTAR e PLANEJAR o futuro.", foto: "ansiedade.png" },
+        "95": { nome: "VERGONHA (HUMILDADE)", papel: "O PAPEL DA VERGONHA! Ajuda a reconhecer erros com humildade, pedir desculpas e se reconectar.", foto: "vergonha.png" }
     };
 
     // CONTADOR GLOBAL DE VOTOS
     const votos = {
-        "10": 0, "20": 0, "30": 0, "40": 0, "50": 0, "60": 0, "BRANCO": 0, "NULO": 0
+        "90": 0, "91": 0, "92": 0, "93": 0, "94": 0, "95": 0, "BRANCO": 0, "NULO": 0
     };
 
     let numeroDigitado = "";
@@ -360,7 +360,7 @@
                 fotoBox.style.display = "none";
             }
         } else {
-            info.innerHTML = "<br><small>Digite o número do sentimento candidato (10, 20, 30, 40, 50 ou 60)</small>";
+            info.innerHTML = "<br><small>Digite o número do sentimento candidato (90, 91, 92, 93, 94 ou 95)</small>";
             fotoBox.style.display = "none";
         }
     }
