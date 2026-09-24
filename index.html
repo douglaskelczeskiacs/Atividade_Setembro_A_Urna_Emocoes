@@ -22,11 +22,16 @@
         html, body {
             width: 100vw;
             height: 100vh;
-            height: 100dvh; /* Preenche a altura total real no tablet */
+            height: 100dvh;
             margin: 0;
             padding: 0;
             overflow: hidden;
             background-color: #0f172a;
+            /* Suporte a áreas seguras do iPad/Android */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         body {
@@ -49,6 +54,7 @@
             width: 100%;
             max-height: 100%;
             border: 4px solid #eab308;
+            position: relative;
         }
 
         /* TELA DA URNA */
@@ -274,6 +280,10 @@
 <div class="urna-wrapper">
     <!-- TELA ELETRÔNICA -->
     <div class="tela-container" id="tela">
+        <button id="btn-fullscreen" onclick="forcarTelaCheia()" style="width: 100%; padding: 8px; background: #eab308; color: #000; font-weight: bold; border: none; border-radius: 5px; margin-bottom: 10px; cursor: pointer;">
+            🖥️ ATIVAR TELA CHEIA
+        </button>
+
         <div class="header-urna">🎗️ Justiça Emocional • Setembro Amarelo</div>
         
         <!-- PAINEL PRINCIPAL -->
@@ -342,19 +352,20 @@
         return audioCtx;
     }
 
-    // ENTRAR EM TELA CHEIA MULTIPLATAFORMA (COMPATÍVEL COM TABLETS/MÓVEIS)
-    function entrarTelaCheia() {
+    // ENTRAR EM TELA CHEIA (PADRÃO TABLETS E DESKTOPS)
+    function forcarTelaCheia() {
         const doc = document.documentElement;
-        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-
-        if (!isFullscreen) {
-            const req = doc.requestFullscreen || doc.webkitRequestFullscreen || doc.mozRequestFullScreen || doc.msRequestFullscreen;
-            if (req) {
-                req.call(doc).catch(() => {
-                    // Ignora bloqueios pontuais do navegador do tablet
-                });
-            }
+        
+        if (doc.requestFullscreen) {
+            doc.requestFullscreen().catch(() => {});
+        } else if (doc.webkitRequestFullscreen) { /* iPad / Safari */
+            doc.webkitRequestFullscreen();
+        } else if (doc.msRequestFullscreen) {
+            doc.msRequestFullscreen();
         }
+
+        const btnFS = document.getElementById('btn-fullscreen');
+        if (btnFS) btnFS.style.display = 'none';
     }
 
     // SAIR DA TELA CHEIA (35 + BRANCO)
@@ -366,11 +377,13 @@
                 exit.call(document).catch(() => {});
             }
         }
+        const btnFS = document.getElementById('btn-fullscreen');
+        if (btnFS) btnFS.style.display = 'block';
     }
 
     function gestaoInteracaoInicial() {
         getAudioContext();
-        entrarTelaCheia();
+        forcarTelaCheia();
     }
 
     // CANDIDATOS ATUALIZADOS
@@ -643,22 +656,20 @@
         URL.revokeObjectURL(link.href);
     }
 
-    // REGISTRO DE EVENTOS OTIMIZADO PARA TOUCH/POINTER EM TABLETS
+    // REGISTRO DE EVENTOS OTIMIZADO PARA TABLETS
     function conectarBotoes() {
         const adicionarAcaoMultiplataforma = (el, callback) => {
             let ultimoDisparo = 0;
             const handler = (e) => {
-                e.preventDefault(); // Previne emulações duplas de clique no tablet
                 const agora = Date.now();
-                if (agora - ultimoDisparo < 250) return;
+                if (agora - ultimoDisparo < 200) return;
                 ultimoDisparo = agora;
                 
                 gestaoInteracaoInicial();
                 callback(e);
             };
 
-            el.addEventListener('touchstart', handler, { passive: false });
-            el.addEventListener('click', handler);
+            el.addEventListener('pointerdown', handler);
         };
 
         document.querySelectorAll('.btn-num').forEach(btn => {
