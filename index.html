@@ -8,8 +8,8 @@
         * {
             box-sizing: border-box;
             font-family: 'Arial', sans-serif;
-            -webkit-tap-highlight-color: transparent; /* Remove o brilho ao tocar no tablet */
-            user-select: none; /* Evita selecionar texto ao clicar rápido */
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
             -webkit-user-select: none;
         }
         body {
@@ -21,8 +21,8 @@
             min-height: 100vh;
             margin: 0;
             padding: 15px;
-            overflow: hidden; /* Evita rolagem na tela cheia */
-            touch-action: manipulation; /* Remove atraso de 300ms nos toques */
+            overflow: hidden;
+            touch-action: manipulation;
         }
         .urna-wrapper {
             background: #d1d5db;
@@ -261,26 +261,32 @@
     <div class="tela-container" id="tela">
         <div class="header-urna">🎗️ Justiça Emocional • Setembro Amarelo</div>
         
-        <div id="conteudo-voto">
-            <div class="cargo-title">SEU VOTO VAI PARA:</div>
-            <div class="numero-container">
-                Número:
-                <div class="num-box pisca" id="d1"></div>
-                <div class="num-box" id="d2"></div>
+        <!-- PAINEL PRINCIPAL (PERMANENTE NO DOM) -->
+        <div id="painel-principal" style="display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+            <div id="conteudo-voto">
+                <div class="cargo-title">SEU VOTO VAI PARA:</div>
+                <div class="numero-container">
+                    Número:
+                    <div class="num-box pisca" id="d1"></div>
+                    <div class="num-box" id="d2"></div>
+                </div>
+                <div class="info-candidato" id="info">
+                    <!-- Informações dinâmicas -->
+                </div>
+                <div class="foto-candidato" id="foto-box" style="display: none;">
+                    <img id="foto-img" src="" alt="Sentimento">
+                </div>
             </div>
-            <div class="info-candidato" id="info">
-                <!-- Informações dinâmicas -->
-            </div>
-            <div class="foto-candidato" id="foto-box" style="display: none;">
-                <img id="foto-img" src="" alt="Sentimento">
+
+            <div class="instrucoes" id="instrucoes">
+                Aperte a tecla:<br>
+                <strong>CONFIRMA</strong> para CONFIRMAR este voto<br>
+                <strong>CORRIGE</strong> para REINICIAR este voto
             </div>
         </div>
 
-        <div class="instrucoes" id="instrucoes">
-            Aperte a tecla:<br>
-            <strong>CONFIRMA</strong> para CONFIRMAR este voto<br>
-            <strong>CORRIGE</strong> para REINICIAR este voto
-        </div>
+        <!-- PAINEL DINÂMICO (FIM / RELATÓRIO) -->
+        <div id="painel-dinamico" style="display: none; height: 100%;"></div>
     </div>
 
     <!-- TECLADO FÍSICO -->
@@ -329,17 +335,13 @@
         }).catch(() => {});
     }
 
-    function inicializarGestoUsuario() {
-        liberarAudio();
-    }
-
     function toggleTelaCheia() {
+        const doc = document.documentElement;
         if (!document.fullscreenElement && 
             !document.mozFullScreenElement && 
             !document.webkitFullscreenElement && 
             !document.msFullscreenElement) {
             
-            const doc = document.documentElement;
             if (doc.requestFullscreen) { doc.requestFullscreen(); } 
             else if (doc.mozRequestFullScreen) { doc.mozRequestFullScreen(); } 
             else if (doc.webkitRequestFullscreen) { doc.webkitRequestFullscreen(); } 
@@ -351,9 +353,6 @@
             else if (document.msExitFullscreen) { document.msExitFullscreen(); }
         }
     }
-
-    document.addEventListener('touchstart', inicializarGestoUsuario, { once: true });
-    document.addEventListener('click', inicializarGestoUsuario, { once: true });
 
     // CANDIDATOS ATUALIZADOS PARA O SANTINHO (90 - 95)
     const candidatos = {
@@ -396,6 +395,9 @@
     }
 
     function atualizaTela() {
+        document.getElementById('painel-principal').style.display = "flex";
+        document.getElementById('painel-dinamico').style.display = "none";
+
         const d1 = document.getElementById('d1');
         const d2 = document.getElementById('d2');
         const info = document.getElementById('info');
@@ -531,8 +533,11 @@
     }
 
     function exibirFimEAvancar() {
-        const tela = document.getElementById('tela');
-        tela.innerHTML = `
+        document.getElementById('painel-principal').style.display = "none";
+        const dinamico = document.getElementById('painel-dinamico');
+        dinamico.style.display = "block";
+        
+        dinamico.innerHTML = `
             <div class="fim-screen">
                 <div class="fim-title">F I M</div>
                 <p style="color: #475569; font-weight: bold;">VOTO COMPUTADO</p>
@@ -549,28 +554,6 @@
         numeroDigitado = "";
         eBranco = false;
         votacaoBloqueada = false;
-
-        const tela = document.getElementById('tela');
-        tela.innerHTML = `
-            <div class="header-urna">🎗️ Justiça Emocional • Setembro Amarelo</div>
-            <div id="conteudo-voto">
-                <div class="cargo-title">SEU VOTO VAI PARA:</div>
-                <div class="numero-container">
-                    Número:
-                    <div class="num-box pisca" id="d1"></div>
-                    <div class="num-box" id="d2"></div>
-                </div>
-                <div class="info-candidato" id="info"></div>
-                <div class="foto-candidato" id="foto-box" style="display: none;">
-                    <img id="foto-img" src="" alt="Sentimento">
-                </div>
-            </div>
-            <div class="instrucoes" id="instrucoes">
-                Aperte a tecla:<br>
-                <strong>CONFIRMA</strong> para CONFIRMAR este voto<br>
-                <strong>CORRIGE</strong> para REINICIAR este voto
-            </div>
-        `;
         atualizaTela();
     }
 
@@ -595,10 +578,17 @@
 
         relatorioHTML += `
         <button class="btn-download-txt" onclick="baixarTXT()">📥 Baixar Relatório em TXT</button>
-        <button onclick="resetarParaProximoEleitor()" style="width:100%; padding:10px; background:#1e293b; color:#fff; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">Voltar para Votação</button>
+        <button id="btn-voltar-relatorio" style="width:100%; padding:10px; background:#1e293b; color:#fff; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">Voltar para Votação</button>
         </div>`;
 
-        document.getElementById('tela').innerHTML = relatorioHTML;
+        document.getElementById('painel-principal').style.display = "none";
+        const dinamico = document.getElementById('painel-dinamico');
+        dinamico.style.display = "block";
+        dinamico.innerHTML = relatorioHTML;
+
+        document.getElementById('btn-voltar-relatorio').addEventListener('click', () => {
+            resetarParaProximoEleitor();
+        });
     }
 
     function baixarTXT() {
@@ -631,38 +621,33 @@
         URL.revokeObjectURL(link.href);
     }
 
-    // ATRIBUIÇÃO DE EVENTOS TOUCH/CLICK MULTI-DISPOSITIVO
+    // SUPORTE UNIVERSAL A TOQUE E CLIQUE (SEM CONFLITO NO TABLET)
     function conectarBotoes() {
-        document.querySelectorAll('.btn-num').forEach(btn => {
-            const val = btn.getAttribute('data-val');
-            const disparar = (e) => {
-                e.preventDefault();
-                processaClique(val);
+        const adicionarAcaoMultiplataforma = (el, callback) => {
+            let ultimoDisparo = 0;
+            const handler = (e) => {
+                const agora = Date.now();
+                if (agora - ultimoDisparo < 300) return; // Evita duplo clique de evento touch/click em simultâneo
+                ultimoDisparo = agora;
+                liberarAudio();
+                callback(e);
             };
-            btn.addEventListener('touchstart', disparar, { passive: false });
-            btn.addEventListener('click', (e) => {
-                if (e.detail !== 0) return; // Evita duplo disparo se o navegador mapear touch como click
-                processaClique(val);
-            });
-        });
 
-        const bindAcao = (id, fn) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const disparar = (e) => {
-                e.preventDefault();
-                fn();
-            };
-            el.addEventListener('touchstart', disparar, { passive: false });
-            el.addEventListener('click', (e) => {
-                if (e.detail !== 0) return;
-                fn();
-            });
+            el.addEventListener('pointerdown', handler);
         };
 
-        bindAcao('btn-branco', votarBranco);
-        bindAcao('btn-corrige', corrige);
-        bindAcao('btn-confirma', confirma);
+        document.querySelectorAll('.btn-num').forEach(btn => {
+            const val = btn.getAttribute('data-val');
+            adicionarAcaoMultiplataforma(btn, () => processaClique(val));
+        });
+
+        const btnBranco = document.getElementById('btn-branco');
+        const btnCorrige = document.getElementById('btn-corrige');
+        const btnConfirma = document.getElementById('btn-confirma');
+
+        if (btnBranco) adicionarAcaoMultiplataforma(btnBranco, votarBranco);
+        if (btnCorrige) adicionarAcaoMultiplataforma(btnCorrige, corrige);
+        if (btnConfirma) adicionarAcaoMultiplataforma(btnConfirma, confirma);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
