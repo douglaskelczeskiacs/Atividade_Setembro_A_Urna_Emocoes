@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- TAGS PARA FORÇAR MODO TELA CHEIA / PWA EM TABLETS (ANDROID / IPAD) -->
+    <!-- TAGS PARA MODO PWA / TELA CHEIA EM TABLETS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -27,7 +27,7 @@
             padding: 0;
             overflow: hidden;
             background-color: #0f172a;
-            /* Suporte a áreas seguras do iPad/Android */
+            /* Suporte às bordas e áreas seguras do tablet */
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
             padding-left: env(safe-area-inset-left);
@@ -208,7 +208,7 @@
         .btn-correio { background-color: #dc2626; color: #fff; }
         .btn-confirma { background-color: #16a34a; color: #fff; }
 
-        /* MENSAGEM FINAL DE FIM / ESTATÍSTICAS */
+        /* PAINEL DINÂMICO */
         .fim-screen {
             display: flex;
             flex-direction: column;
@@ -259,7 +259,7 @@
             background: #15803d;
         }
 
-        /* REGRAS RESPONSIVAS */
+        /* RESPONSIVIDADE */
         @media (max-width: 850px) {
             body { padding: 10px; }
             .urna-wrapper { flex-direction: column; padding: 15px; gap: 15px; }
@@ -338,7 +338,6 @@
 </div>
 
 <script>
-    // AUDIO ENGINE E CONTEXTO DE SOM
     const audioConfirma = new Audio('confirma_voto.mp3');
     let audioCtx = null;
 
@@ -352,23 +351,25 @@
         return audioCtx;
     }
 
-    // ENTRAR EM TELA CHEIA (PADRÃO TABLETS E DESKTOPS)
+    // ENTRAR EM TELA CHEIA MULTIPLATAFORMA
     function forcarTelaCheia() {
         const doc = document.documentElement;
         
-        if (doc.requestFullscreen) {
-            doc.requestFullscreen().catch(() => {});
-        } else if (doc.webkitRequestFullscreen) { /* iPad / Safari */
-            doc.webkitRequestFullscreen();
-        } else if (doc.msRequestFullscreen) {
-            doc.msRequestFullscreen();
-        }
+        try {
+            if (doc.requestFullscreen) {
+                doc.requestFullscreen().catch(() => {});
+            } else if (doc.webkitRequestFullscreen) {
+                doc.webkitRequestFullscreen();
+            } else if (doc.msRequestFullscreen) {
+                doc.msRequestFullscreen();
+            }
+        } catch(e) {}
 
         const btnFS = document.getElementById('btn-fullscreen');
         if (btnFS) btnFS.style.display = 'none';
     }
 
-    // SAIR DA TELA CHEIA (35 + BRANCO)
+    // SAIR DA TELA CHEIA (COMANDO 35 + BRANCO)
     function sairTelaCheia() {
         const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         if (isFullscreen) {
@@ -381,12 +382,7 @@
         if (btnFS) btnFS.style.display = 'block';
     }
 
-    function gestaoInteracaoInicial() {
-        getAudioContext();
-        forcarTelaCheia();
-    }
-
-    // CANDIDATOS ATUALIZADOS
+    // CANDIDATOS
     const candidatos = {
         "90": { nome: "ALEGRIA (AÇÃO)", papel: "Ação da Alegria: Traz energia e otimismo, mas precisa respeitar o tempo da dor.", foto: "alegria.png" },
         "91": { nome: "TRISTEZA (EMPATIA)", papel: "EXCELENTE! Tristeza traz empatia. Sente ao lado e valide o choro.", foto: "tristeza.png" },
@@ -396,7 +392,7 @@
         "95": { nome: "VERGONHA (HUMILDADE)", papel: "O PAPEL DA VERGONHA! Ajuda a reconhecer erros com humildade, pedir desculpas e se reconectar.", foto: "vergonha.png" }
     };
 
-    // CONTADOR GLOBAL DE VOTOS
+    // VOTOS
     const votos = {
         "90": 0, "91": 0, "92": 0, "93": 0, "94": 0, "95": 0, "BRANCO": 0, "NULO": 0
     };
@@ -405,7 +401,6 @@
     let eBranco = false;
     let votacaoBloqueada = false;
 
-    // BEEP DE DIGITAÇÃO INSTANTÂNEO
     function tocarSomTeclado() {
         try {
             const ctx = getAudioContext();
@@ -495,7 +490,6 @@
         if (votacaoBloqueada) return;
         tocarSomTeclado();
 
-        // COMANDO SECRETO PARA SAIR DA TELA CHEIA (35 + BRANCO)
         if (numeroDigitado === "35") {
             sairTelaCheia();
             numeroDigitado = "";
@@ -503,7 +497,6 @@
             return;
         }
 
-        // COMANDO SECRETO PARA EXIBIR RELATÓRIO (89 + BRANCO)
         if (numeroDigitado === "89") {
             exibirRelatorio();
             return;
@@ -656,7 +649,7 @@
         URL.revokeObjectURL(link.href);
     }
 
-    // REGISTRO DE EVENTOS OTIMIZADO PARA TABLETS
+    // REGISTRO DE EVENTOS COM TENTATIVA AUTOMÁTICA DE TELA CHEIA A CADA TOQUE
     function conectarBotoes() {
         const adicionarAcaoMultiplataforma = (el, callback) => {
             let ultimoDisparo = 0;
@@ -665,7 +658,15 @@
                 if (agora - ultimoDisparo < 200) return;
                 ultimoDisparo = agora;
                 
-                gestaoInteracaoInicial();
+                // Ativa áudio
+                getAudioContext();
+                
+                // Força ativação de tela cheia se ainda não estiver ativa
+                const estaEmTelaCheia = document.fullscreenElement || document.webkitFullscreenElement;
+                if (!estaEmTelaCheia) {
+                    forcarTelaCheia();
+                }
+
                 callback(e);
             };
 
