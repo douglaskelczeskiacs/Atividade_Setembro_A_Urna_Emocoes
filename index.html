@@ -261,7 +261,7 @@
     <div class="tela-container" id="tela">
         <div class="header-urna">🎗️ Justiça Emocional • Setembro Amarelo</div>
         
-        <!-- PAINEL PRINCIPAL (PERMANENTE NO DOM) -->
+        <!-- PAINEL PRINCIPAL -->
         <div id="painel-principal" style="display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
             <div id="conteudo-voto">
                 <div class="cargo-title">SEU VOTO VAI PARA:</div>
@@ -313,7 +313,7 @@
 </div>
 
 <script>
-    // SISTEMA DE ÁUDIO OTIMIZADO PARA MOBILE / TABLET
+    // AUDIO ENGINE E CONTEXTO DE SOM
     const audioConfirma = new Audio('confirma_voto.mp3');
     let audioCtx = null;
 
@@ -327,34 +327,34 @@
         return audioCtx;
     }
 
-    function liberarAudio() {
-        getAudioContext();
-        audioConfirma.play().then(() => {
-            audioConfirma.pause();
-            audioConfirma.currentTime = 0;
-        }).catch(() => {});
+    // ENTRAR EM TELA CHEIA (ATIVADO POR QUALQUER TECLA)
+    function entrarTelaCheia() {
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+        if (!isFullscreen) {
+            const doc = document.documentElement;
+            if (doc.requestFullscreen) { doc.requestFullscreen(); }
+            else if (doc.webkitRequestFullscreen) { doc.webkitRequestFullscreen(); }
+            else if (doc.mozRequestFullScreen) { doc.mozRequestFullScreen(); }
+            else if (doc.msRequestFullscreen) { doc.msRequestFullscreen(); }
+        }
     }
 
-    function toggleTelaCheia() {
-        const doc = document.documentElement;
-        if (!document.fullscreenElement && 
-            !document.mozFullScreenElement && 
-            !document.webkitFullscreenElement && 
-            !document.msFullscreenElement) {
-            
-            if (doc.requestFullscreen) { doc.requestFullscreen(); } 
-            else if (doc.mozRequestFullScreen) { doc.mozRequestFullScreen(); } 
-            else if (doc.webkitRequestFullscreen) { doc.webkitRequestFullscreen(); } 
-            else if (doc.msRequestFullscreen) { doc.msRequestFullscreen(); }
-        } else {
-            if (document.exitFullscreen) { document.exitFullscreen(); } 
-            else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); } 
-            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); } 
+    // SAIR DA TELA CHEIA (35 + BRANCO)
+    function sairTelaCheia() {
+        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+            if (document.exitFullscreen) { document.exitFullscreen(); }
+            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); }
             else if (document.msExitFullscreen) { document.msExitFullscreen(); }
         }
     }
 
-    // CANDIDATOS ATUALIZADOS PARA O SANTINHO (90 - 95)
+    function gestaoInteracaoInicial() {
+        getAudioContext();
+        entrarTelaCheia();
+    }
+
+    // CANDIDATOS ATUALIZADOS
     const candidatos = {
         "90": { nome: "ALEGRIA (AÇÃO)", papel: "Ação da Alegria: Traz energia e otimismo, mas precisa respeitar o tempo da dor.", foto: "alegria.png" },
         "91": { nome: "TRISTEZA (EMPATIA)", papel: "EXCELENTE! Tristeza traz empatia. Sente ao lado e valide o choro.", foto: "tristeza.png" },
@@ -373,7 +373,7 @@
     let eBranco = false;
     let votacaoBloqueada = false;
 
-    // BEEP DE DIGITAÇÃO INSTANTÂNEO (SINE WAVE)
+    // BEEP DE DIGITAÇÃO INSTANTÂNEO
     function tocarSomTeclado() {
         try {
             const ctx = getAudioContext();
@@ -463,9 +463,9 @@
         if (votacaoBloqueada) return;
         tocarSomTeclado();
 
-        // COMANDO SECRETO PARA TELA CHEIA (35 + BRANCO)
+        // COMANDO SECRETO PARA SAIR DA TELA CHEIA (35 + BRANCO)
         if (numeroDigitado === "35") {
-            toggleTelaCheia();
+            sairTelaCheia();
             numeroDigitado = "";
             atualizaTela();
             return;
@@ -511,9 +511,12 @@
 
     function tocarSomFim() {
         audioConfirma.currentTime = 0;
-        audioConfirma.play().catch(e => {
-            tocarSomFimReserva();
-        });
+        const promise = audioConfirma.play();
+        if (promise !== undefined) {
+            promise.catch(() => {
+                tocarSomFimReserva();
+            });
+        }
     }
 
     function tocarSomFimReserva() {
@@ -523,7 +526,7 @@
             const gain = ctx.createGain();
             osc.type = "sine";
             osc.frequency.setValueAtTime(440, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.2);
             gain.gain.setValueAtTime(0.3, ctx.currentTime);
             osc.connect(gain);
             gain.connect(ctx.destination);
@@ -621,15 +624,16 @@
         URL.revokeObjectURL(link.href);
     }
 
-    // SUPORTE UNIVERSAL A TOQUE E CLIQUE (SEM CONFLITO NO TABLET)
+    // REGISTRO DE EVENTOS COM ATIVAÇÃO DE TELA CHEIA AUTOMÁTICA
     function conectarBotoes() {
         const adicionarAcaoMultiplataforma = (el, callback) => {
             let ultimoDisparo = 0;
             const handler = (e) => {
                 const agora = Date.now();
-                if (agora - ultimoDisparo < 300) return; // Evita duplo clique de evento touch/click em simultâneo
+                if (agora - ultimoDisparo < 300) return;
                 ultimoDisparo = agora;
-                liberarAudio();
+                
+                gestaoInteracaoInicial();
                 callback(e);
             };
 
