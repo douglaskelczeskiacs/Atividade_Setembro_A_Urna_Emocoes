@@ -2,7 +2,13 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- TAGS PARA FORÇAR MODO TELA CHEIA / PWA EM TABLETS (ANDROID / IPAD) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <title>Urna Eletrônica - Justiça Emocional</title>
     <style>
         * {
@@ -12,18 +18,26 @@
             user-select: none;
             -webkit-user-select: none;
         }
-        body {
+        
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh; /* Preenche a altura total real no tablet */
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
             background-color: #0f172a;
+        }
+
+        body {
             color: #f8fafc;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
             padding: 15px;
-            overflow: hidden;
             touch-action: manipulation;
         }
+
         .urna-wrapper {
             background: #d1d5db;
             padding: 25px;
@@ -33,6 +47,7 @@
             gap: 20px;
             max-width: 950px;
             width: 100%;
+            max-height: 100%;
             border: 4px solid #eab308;
         }
 
@@ -327,25 +342,29 @@
         return audioCtx;
     }
 
-    // ENTRAR EM TELA CHEIA (ATIVADO POR QUALQUER TECLA)
+    // ENTRAR EM TELA CHEIA MULTIPLATAFORMA (COMPATÍVEL COM TABLETS/MÓVEIS)
     function entrarTelaCheia() {
+        const doc = document.documentElement;
         const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+
         if (!isFullscreen) {
-            const doc = document.documentElement;
-            if (doc.requestFullscreen) { doc.requestFullscreen(); }
-            else if (doc.webkitRequestFullscreen) { doc.webkitRequestFullscreen(); }
-            else if (doc.mozRequestFullScreen) { doc.mozRequestFullScreen(); }
-            else if (doc.msRequestFullscreen) { doc.msRequestFullscreen(); }
+            const req = doc.requestFullscreen || doc.webkitRequestFullscreen || doc.mozRequestFullScreen || doc.msRequestFullscreen;
+            if (req) {
+                req.call(doc).catch(() => {
+                    // Ignora bloqueios pontuais do navegador do tablet
+                });
+            }
         }
     }
 
     // SAIR DA TELA CHEIA (35 + BRANCO)
     function sairTelaCheia() {
-        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-            if (document.exitFullscreen) { document.exitFullscreen(); }
-            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-            else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); }
-            else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+        if (isFullscreen) {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exit) {
+                exit.call(document).catch(() => {});
+            }
         }
     }
 
@@ -624,20 +643,22 @@
         URL.revokeObjectURL(link.href);
     }
 
-    // REGISTRO DE EVENTOS COM ATIVAÇÃO DE TELA CHEIA AUTOMÁTICA
+    // REGISTRO DE EVENTOS OTIMIZADO PARA TOUCH/POINTER EM TABLETS
     function conectarBotoes() {
         const adicionarAcaoMultiplataforma = (el, callback) => {
             let ultimoDisparo = 0;
             const handler = (e) => {
+                e.preventDefault(); // Previne emulações duplas de clique no tablet
                 const agora = Date.now();
-                if (agora - ultimoDisparo < 300) return;
+                if (agora - ultimoDisparo < 250) return;
                 ultimoDisparo = agora;
                 
                 gestaoInteracaoInicial();
                 callback(e);
             };
 
-            el.addEventListener('pointerdown', handler);
+            el.addEventListener('touchstart', handler, { passive: false });
+            el.addEventListener('click', handler);
         };
 
         document.querySelectorAll('.btn-num').forEach(btn => {
