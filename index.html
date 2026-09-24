@@ -202,20 +202,36 @@
         .relatorio-container {
             width: 100%;
             text-align: left;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            overflow-y: auto;
+            max-height: 380px;
         }
         .relatorio-bar {
             background: #cbd5e1;
             border-radius: 5px;
-            height: 18px;
+            height: 14px;
             overflow: hidden;
-            margin-top: 3px;
-            margin-bottom: 8px;
+            margin-top: 2px;
+            margin-bottom: 6px;
         }
         .relatorio-fill {
             height: 100%;
             background: #eab308;
             transition: width 0.5s ease;
+        }
+        .btn-download-txt {
+            width: 100%;
+            padding: 10px;
+            background: #16a34a;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        .btn-download-txt:hover {
+            background: #15803d;
         }
 
         /* REGRAS RESPONSIVAS */
@@ -302,9 +318,9 @@
         }
     }
 
-    // Tenta ativar a Tela Cheia (funciona apenas com interação direta do usuário)
+    // Tenta ativar a Tela Cheia
     function interacaoAtivaTelaCheia() {
-        if (document.fullscreenElement) return; // Já está em tela cheia
+        if (document.fullscreenElement) return;
         
         const doc = document.documentElement;
         if (doc.requestFullscreen) { doc.requestFullscreen(); } 
@@ -313,17 +329,12 @@
         else if (doc.msRequestFullscreen) { doc.msRequestFullscreen(); }
     }
 
-    // Registra a interação para Tela Cheia no corpo do documento
     document.addEventListener('touchstart', interacaoAtivaTelaCheia, { once: true });
     document.addEventListener('click', interacaoAtivaTelaCheia, { once: true });
 
-    // Função unificada para os botões numéricos
     function processaClique(n) {
-        // Tenta ativar a tela cheia se ainda não tiver ativado
         interacaoAtivaTelaCheia();
-        // Libera o áudio se ainda não tiver liberado
         liberarAudio();
-        // Processa a digitação
         digita(n);
     }
 
@@ -554,11 +565,43 @@
             `;
         }
 
-        relatorioHTML += `<br><small><strong>Setembro Amarelo:</strong> Todas as emoções têm um papel no nosso equilíbrio mental.</small>
-        <br><br><button onclick="resetarParaProximoEleitor()" style="width:100%; padding:10px; background:#1e293b; color:#fff; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">Voltar para Votação</button>
+        relatorioHTML += `
+        <button class="btn-download-txt" onclick="baixarTXT()">📥 Baixar Relatório em TXT</button>
+        <button onclick="resetarParaProximoEleitor()" style="width:100%; padding:10px; background:#1e293b; color:#fff; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">Voltar para Votação</button>
         </div>`;
 
         document.getElementById('tela').innerHTML = relatorioHTML;
+    }
+
+    // FUNÇÃO PARA GERAR E BAIXAR O ARQUIVO TXT
+    function baixarTXT() {
+        const totalVotos = Object.values(votos).reduce((a, b) => a + b, 0);
+        const agora = new Date();
+        const dataFormatada = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR');
+
+        let conteudo = "===========================================\n";
+        conteudo += "   RELATÓRIO DE VOTAÇÃO - JUSTIÇA EMOCIONAL\n";
+        conteudo += "===========================================\n";
+        conteudo += `Data do Relatório: ${dataFormatada}\n`;
+        conteudo += `Total de Votos Apurados: ${totalVotos}\n`;
+        conteudo += "-------------------------------------------\n\n";
+
+        for (const [key, val] of Object.entries(votos)) {
+            let nome = key;
+            if (candidatos[key]) nome = `${key} - ${candidatos[key].nome}`;
+            const pct = totalVotos > 0 ? ((val / totalVotos) * 100).toFixed(1) : "0.0";
+            conteudo += `${nome.padEnd(30, ' ')}: ${val} voto(s) (${pct}%)\n`;
+        }
+
+        conteudo += "\n===========================================\n";
+        conteudo += "Setembro Amarelo: Todas as emoções têm um papel no nosso equilíbrio mental.\n";
+
+        const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `resultado_votacao_emocional_${agora.toISOString().slice(0,10)}.txt`;
+        link.click();
+        URL.revokeObjectURL(link.href);
     }
 
     atualizaTela();
