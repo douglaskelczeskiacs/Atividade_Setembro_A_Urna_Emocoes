@@ -416,7 +416,6 @@
         });
     }
 
-    // ÁUDIO RESERVA CASO O ARQUIVO MP3 NÃO SEJA ENCONTRADO OU BLOQUEADO
     function tocarSomFimReserva() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -452,7 +451,7 @@
     function exibirRelatorio() {
         const totalVotos = Object.values(votos).reduce((a, b) => a + b, 0);
         let relatorioHTML = `<div class="relatorio-container">
-            <h3 style="text-align:center; margin-top:0;">📊 Relatório Final - Justiça Emocional</h3>`;
+            <h3 style="text-align:center; margin-top:0; margin-bottom:10px;">📊 Relatório Final - Justiça Emocional</h3>`;
 
         for (const [key, val] of Object.entries(votos)) {
             let nome = key;
@@ -467,11 +466,49 @@
             `;
         }
 
-        relatorioHTML += `<br><small><strong>Setembro Amarelo:</strong> Todas as emoções têm um papel no nosso equilíbrio mental.</small>
-        <br><br><button onclick="reiniciarVotacao()" style="width:100%; padding:8px; background:#1e293b; color:#fff; border:none; border-radius:5px; cursor:pointer;">Reiniciar Urna</button>
+        relatorioHTML += `<small><strong>Setembro Amarelo:</strong> Todas as emoções têm um papel no nosso equilíbrio mental.</small>
+        
+        <div style="display:flex; gap:5px; margin-top:12px;">
+            <button onclick="salvarRelatorio()" style="flex:1; padding:8px; background:#16a34a; color:#fff; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">💾 Salvar (.txt)</button>
+            <button onclick="reiniciarVotacao()" style="flex:1; padding:8px; background:#1e293b; color:#fff; border:none; border-radius:5px; cursor:pointer;">Reiniciar Urna</button>
+        </div>
         </div>`;
 
         document.getElementById('tela').innerHTML = relatorioHTML;
+    }
+
+    // NOVA FUNÇÃO: SALVAR RELATÓRIO DE VOTOS EM ARQUIVO DE TEXTO
+    function salvarRelatorio() {
+        const totalVotos = Object.values(votos).reduce((a, b) => a + b, 0);
+        let dataHora = new Date().toLocaleString('pt-BR');
+        
+        let conteudo = "========================================\n";
+        conteudo += "   RELATÓRIO DE VOTAÇÃO - JUSTIÇA EMOCIONAL\n";
+        conteudo += "   Setembro Amarelo\n";
+        conteudo += `   Data/Hora: ${dataHora}\n`;
+        conteudo += "========================================\n\n";
+        conteudo += `Total de Votos: ${totalVotos}\n\n`;
+        conteudo += "DETALHAMENTO DOS VOTOS:\n";
+        conteudo += "----------------------------------------\n";
+
+        for (const [key, val] of Object.entries(votos)) {
+            let nome = key;
+            if (candidatos[key]) nome = candidatos[key].nome;
+            const pct = totalVotos > 0 ? ((val / totalVotos) * 100).toFixed(1) : 0;
+            conteudo += `${nome.padEnd(12, ' ')}: ${val} voto(s) (${pct}%)\n`;
+        }
+
+        conteudo += "----------------------------------------\n";
+        conteudo += "\nSetembro Amarelo: Todas as emoções têm um papel no nosso equilíbrio mental.";
+
+        // Cria um Blob com o conteúdo e simula um clique de download
+        const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `relatorio_votacao_${new Date().toISOString().slice(0,10)}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 
     atualizaTela();
